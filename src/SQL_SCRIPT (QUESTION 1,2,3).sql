@@ -199,6 +199,155 @@ FROM product
 GROUP BY product_id, product_name, price_value
 HAVING COUNT(*) > 1;
 
+
+
+
+
+
+
 -- ASSIGNMENT 2:
+
+CREATE TABLE product_details (
+    sell_date DATE,
+    product VARCHAR(50)
+);
+
+INSERT INTO product_details (sell_date, product)
+VALUES
+('2020-05-30', 'Headphones'),
+('2020-06-01', 'Pencil'),
+('2020-06-02', 'Mask'),
+('2020-05-30', 'Basketball'),
+('2020-06-01', 'Book'),
+('2020-06-02', ' Mask '),
+('2020-05-30', 'T-Shirt');
+select * from product_details;
+
+SELECT
+    sell_date,
+    COUNT(*) AS num_sold,
+    STRING_AGG(product, ', ') 
+        WITHIN GROUP (ORDER BY product) AS product_list
+FROM (
+    SELECT DISTINCT
+        sell_date,
+        LTRIM(RTRIM(product)) AS product
+    FROM product_details
+) t
+GROUP BY sell_date
+ORDER BY sell_date;
+
+
+--ASSIGNMENT 3
+
+CREATE TABLE dept_tbl (
+    id_deptname VARCHAR(20),
+    emp_name VARCHAR(50),
+    salary INT
+);
+INSERT INTO dept_tbl VALUES
+('1111-MATH', 'RAHUL', 10000),
+('1111-MATH', 'RAKESH', 20000),
+('2222-SCIENCE', 'AKASH', 10000),
+('222-SCIENCE', 'ANDREW', 10000),
+('22-CHEM', 'ANKIT', 25000),
+('3333-CHEM', 'SONIKA', 12000),
+('4444-BIO', 'HITESH', 2300),
+('44-BIO', 'AKSHAY', 10000);
+
+SELECT * from dept_tbl;
+
+SELECT
+    UPPER(SUBSTRING(id_deptname, CHARINDEX('-', id_deptname) + 1, LEN(id_deptname))) AS dept_name,
+    SUM(salary) AS total_salary
+FROM dept_tbl
+GROUP BY
+    SUBSTRING(id_deptname, CHARINDEX('-', id_deptname) + 1, LEN(id_deptname))
+ORDER BY dept_name;
+
+--Assignment 4
+
+CREATE TABLE email_signup (
+    id INT,
+    email_id VARCHAR(100),
+    signup_date DATE
+);
+INSERT INTO email_signup VALUES
+(1, 'Rajesh@Gmail.com', '2022-02-01'),
+(2, 'Rakesh_gmail@rediffmail.com', '2023-01-22'),
+(3, 'Hitest@Gmail.com', '2020-09-08'),
+(4, 'Salil@Gmmail.com', '2019-07-05'),
+(5, 'Himanshu@Yahoo.com', '2023-05-09'),
+(6, 'Hitesh@Twitter.com', '2015-01-01'),
+(7, 'Rakesh@facebook.com', NULL);
+
+select * from email_signup;
+
+UPDATE email_signup
+SET signup_date = '1970-01-01'
+WHERE signup_date IS NULL;
+
+SELECT
+    COUNT(*) AS count_gmail_account,
+    MAX(signup_date) AS latest_signup_date,
+    MIN(signup_date) AS first_signup_date,
+    DATEDIFF(
+        DAY,
+        MIN(signup_date),
+        MAX(signup_date)
+    ) AS diff_in_days
+FROM email_signup
+WHERE LOWER(email_id) LIKE '%@gmail.com';
+
+--ASSIGNMENT-5
+
+CREATE TABLE sales_data (
+    productid INT,
+    sale_date DATE,
+    quantity_sold INT
+);
+INSERT INTO sales_data VALUES
+(1, '2022-01-01', 20),
+(2, '2022-01-01', 15),
+(1, '2022-01-02', 10),
+(2, '2022-01-02', 25),
+(1, '2022-01-03', 30),
+(2, '2022-01-03', 18),
+(1, '2022-01-04', 12),
+(2, '2022-01-04', 22);
+
+select * from sales_data;
+
+SELECT *,
+       RANK() OVER (PARTITION BY productid ORDER BY sale_date DESC) AS rnk
+FROM sales_data;
+
+SELECT
+    productid,
+    sale_date,
+    quantity_sold,
+    LAG(quantity_sold) OVER (
+        PARTITION BY productid ORDER BY sale_date
+    ) AS previous_quantity,
+    quantity_sold - LAG(quantity_sold) OVER (
+        PARTITION BY productid ORDER BY sale_date
+    ) AS difference
+FROM sales_data;
+
+
+SELECT
+    productid,
+    FIRST_VALUE(quantity_sold) OVER (
+        PARTITION BY productid ORDER BY sale_date
+    ) AS first_quantity,
+    LAST_VALUE(quantity_sold) OVER (
+        PARTITION BY productid ORDER BY sale_date
+        ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+    ) AS last_quantity
+FROM sales_data
+GROUP BY productid, sale_date, quantity_sold;
+
+
+
 
 
